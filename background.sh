@@ -1,5 +1,5 @@
 while true
 do
  python3 main.py
- sleep 300
+ sleep 3
 done
