@@ -182,7 +182,7 @@ def setInterval(userid,int):
 def newUser(userid):
 	userid = str(userid)
 	if userid in users: return
-	users['userid'] = {}
+	users[userid] = {'subscribed' : True}
 	sendMessage(userid,welcomeMessage)
 def delUser(userid):
 	userid = str(userid)
@@ -197,6 +197,16 @@ def setCronInterval(userid,int):
 	if not 'administrator' in user: return
 	write('background.sh','while true; do python3 main.py; sleep %s; done'%(int))
 	sendMessage(userid,"Cron interval set to %s"%(int))
+def adminMessage(userid,who,msg):
+	user = useridStr(userid)
+	if not user: return
+	if not 'administrator' in user: return
+	to = {str(who) : {'subscribed': True}}
+	print(to)
+	if 'all'==who: to = users
+	for u in to:
+		if 'subscribed' in to[u]:
+			sendMessage(u,msg)
 
 token = read(tokenFile,46)
 offset = read(offsetFile,10) or 0
@@ -212,9 +222,7 @@ if ('result' in j):
 		if (message):
 #			print(message)
 			userid = update['message']['from']['id']
-			if (not str(userid) in users):
-				print("creating user %s"%(userid))
-				users[userid] = {}
+			newUser(userid)
 			if ('entities' in message):
 				e = update['message']['entities'][0]
 				o = e['offset']
@@ -252,10 +260,16 @@ if ('result' in j):
 					sendMessage(userid,"feature coming soon ;)")
 				elif '/cron'==command:
 					setCronInterval(userid,params and params[0] or 30)
+				elif '/msg'==command:
+					if 2==len(params): adminMessage(userid,params[0],params[1])
 				else:
 					sendMessage(userid,"unknown command :(")
 				print(userid,command,params)
+			else:
+				print(message)
 			offset = update['update_id']+1
+		else:
+			print(update)
 
 for u in users:
 	if 'interval' in users[u]:
