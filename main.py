@@ -1,6 +1,8 @@
 print("running")
 import requests
 import json
+import random
+import time
 
 preURL = "https://api.telegram.org/bot"
 offsetFile = "offset.txt"
@@ -50,7 +52,7 @@ def useridStr(userid):
 def getRandomVoc():
 	if None==dict: return
 	if 1>len(dict): return
-	return random.choice(dict)
+	return random.choice(list(dict))
 
 def sendMessage(chat_id, msg):
 	requests.post("%s%s/sendMessage?chat_id=%s&text=%s"%(preURL,token,chat_id,msg))
@@ -60,7 +62,11 @@ def printVocable(userid):
 	if not user: return
 	vocab = getRandomVoc()
 	if vocab:
-		sendMessage(userid,"%s : %s"%(vocab[0],vocab[1]))
+		user['last1'] = vocab
+		v2 = next(iter(dict[vocab]))
+		user['last2'] = v2
+		user['lasttime'] = time.time()
+		sendMessage(userid,"%s : %s"%(vocab,v2))
 	else:
 		sendMessage(userid,"no vocables learnt yet :(")
 
@@ -72,6 +78,9 @@ def addVocable(words,userid):
 	if not user: return
 	if 'administrator' in user:
 		print("admin adding Voc")
+	elif 'banned' in user:
+		sendMessage(userid,"u are banned from adding")
+		return
 	elif not 'votes' in user:
 		sendMessage(userid,"vote 10 times first.")
 		return
@@ -79,24 +88,59 @@ def addVocable(words,userid):
 		sendMessage(userid,"Get 10 votes. Having: %s"%(user['votes']))
 		return
 	if 2==len(words):
-		dict[words[0]] = dict[words[0]] or {}
-		dict[words[0]][words[1]] = dict[words[0]][words[1]] or {}
-		dict[words[0]][words[1]][userid] = True
+		if not words[0] in dict: dict[words[0]] = {}
+		if not words[1] in dict[words[0]]: dict[words[0]][words[1]] = {}
+		dict[words[0]][words[1]][userid] = "creator"
+		dict[words[0]][words[1]]['good'] = 0
+		dict[words[0]][words[1]]['bad'] = 0
 		sendMessage(userid,"thanks")
 	else:
 		sendMessage(userid,"didn't read 2 words ")
-def rateVocable(userid):
+def rateVocable(userid,vote):
 	user = useridStr(userid)
-	if not userid: return
+	if not user: return
+	if not 'last1' in user:
+		sendMessage(userid,"Didn't find your last vocable :(")
+		return
+	if 'good'!=vote and 'bad'!=vote:
+		sendMessage(userid,"please vote good or bad")
+		return
 	if None==dict:
 		log("rateVocable None==dict")
 		return
+	if not user['last1'] in dict: return
 	if 'banned' in user:
 		sendMessage(userid,"You can't vote anymore :(")
 		return
-	print(users)
-	sendMessage(userid,"rate the vocble!")
+	vocab = dict[user['last1']][user['last2']]
+	if userid in vocab:
+		sendMessage(userid,"already voted")
+		return
+	vocab[userid] = vote
+	if 'good'==vote:
+		print(vocab)
+		vocab['good'] = (vocab['good'] or 0) +1
+	elif 'bad'==vote:
+		vocab['bad'] = (vocab['bad'] or 0) +1
+		badVotes = vocab['bad']
+		if badVotes>50 and badVotes>vocab['good']:
+			for u in vocab:
+				if 'creator' in u:
+					strikeUser(u)
+			del vocab
+	sendMessage(userid,"thanks for the rating!")
+
+
+def strikeUser(userid):
+	user = useridStr(userid)
+	if not user: return
+	if 'strike' in user:
+		user['banned'] = True
+		del user['strike']
+	sendMessage(u,"you received a strike.")
+
 def banUser(boss,victim,banBool):
+#	if not userid in users: return
 	boss = useridStr(boss)
 	if not boss: return
 	if 'moderator' in boss:
@@ -119,16 +163,24 @@ def modUser(boss,victim,modBool):
 		if not victim in users: users[victim] = {}
 		if modBool:
 			users[victim]['moderator'] = modBool
+			sendMessage(victim,"You are now a moderator, you can use /ban 123 and /unban 123, knowing the telegram_id of a person")
 		else:
 			del users[victim]['moderator']
 	else:
 		print("non admin tried to mod:%s"%(boss))
+def setInterval(userid,int):
+	int = float(int)
+	if not int: int = 1
+	intSec = int*86400
+	user = useridStr(userid)
+	if not user: return
+	user['interval'] = intSec
+	sendMessage(userid,"interval set to %s days"%(int))
 
 
 token = read(tokenFile,46)
 offset = read(offsetFile,10) or 0
-dict = readjson(dictFile)
-print(dict)
+dict = readjson(dictFile) or {}
 users = readjson(userFile) or {'452549370' : {'administrator': 'True'}}
 
 j = requests.get("%s%s/getUpdates?offset=%s"%(preURL,token,offset)).json()
@@ -151,7 +203,9 @@ if ('result' in j):
 					if 0==len(params): printVocable(userid)
 					else: addVocable(params,userid)
 				elif '/vote'==command:
-					rateVocable(userid)
+					rateVocable(userid, params and params[0] or 0)
+				elif '/interval'==command:
+					setInterval(userid, params and params[0] or 1)
 				elif '/ban'==command:
 					for u in params:
 						banUser(userid,u,True)
@@ -170,6 +224,13 @@ if ('result' in j):
 					sendMessage(userid,"unknown command :(")
 				print(userid,command,params)
 			offset = update['update_id']+1
+
+for u in users:
+	if 'interval' in users[u]:
+		if users[u]['interval']>0:
+			if not 'lasttime' in users[u]: users[u]['lasttime'] = 0
+			if users[u]['lasttime']+users[u]['interval']<time.time():
+				printVocable(u)
 
 writejson(dictFile,dict)
 writejson(userFile,users)

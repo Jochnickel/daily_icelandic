@@ -1,1 +1,1 @@
-{"452549370": {"administrator": "True", "moderator": true}}
+{"452549370": {"administrator": "True", "moderator": true, "last1": "h\u00fas", "last2": "house", "interval": 8.64, "lasttime": 1583291767.6475115}}
