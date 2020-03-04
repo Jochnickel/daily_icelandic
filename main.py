@@ -10,7 +10,7 @@ tokenFile = "token.txt"
 dictFile = "dictionary.txt"
 userFile = "userdata.txt"
 logFile = "log.txt"
-welcomeMessage = "Welcome! start with /interval, stop with /stop, unregister with /unsubscribe"
+welcomeMessage = "Welcome! start with /vocable and /interval, stop interval with /stop, unregister with /unsubscribe"
 admin = '452549370'
 
 def read(path, len):
@@ -179,18 +179,22 @@ def setInterval(userid,int):
 	if not user: return
 	user['interval'] = intSec
 	sendMessage(userid,"interval set to %s days"%(int))
+
 def newUser(userid):
 	userid = str(userid)
 	if userid in users: return
 	users[userid] = {'subscribed' : True}
 	sendMessage(userid,welcomeMessage)
+
 def delUser(userid):
 	userid = str(userid)
 	if userid in users:
-		if 'banned' in userid[users]:
+		if 'banned' in users[userid]:
 			userid[users] = {'banned' : True}
 		else:
-			del userid[users]
+			del users[userid]
+		sendMessage(userid,"You unsubsribed!")
+
 def setCronInterval(userid,int):
 	user = useridStr(userid)
 	if not user: return
