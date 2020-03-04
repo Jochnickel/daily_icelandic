@@ -181,8 +181,7 @@ def setInterval(userid,int):
 def newUser(userid):
 	userid = str(userid)
 	if userid in users: return
-	users['userid'] = {}
-	sendMessage(userid,"Welcome! start with /interval, stop with /interval -1")
+	sendMessage(userid,"Welcome!
 
 token = read(tokenFile,46)
 offset = read(offsetFile,10) or 0

@@ -1,1 +1,1 @@
-{"452549370": {"administrator": "True", "moderator": true, "last1": "m\u00e1lreifur", "last2": "talkative", "interval": 86400.0, "lasttime": 1583292362.1079829}}
+{"452549370": {"administrator": "True", "moderator": true, "last1": "kj\u00f6t", "last2": "meat", "interval": 43200.0, "lasttime": 1583293201.6462047}}
