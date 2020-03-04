@@ -82,11 +82,11 @@ def addVocable(words,userid):
 	elif 'banned' in user:
 		sendMessage(userid,"u are banned from adding")
 		return
+	elif time.time()<1587933347.5322053:
+		print("testing time")
 	elif not 'votes' in user:
 		sendMessage(userid,"vote 10 times first.")
 		return
-	elif time.time()<1587933347.5322053:
-		print("testing time")
 	elif 10>users[userid]['votes']:
 		sendMessage(userid,"Get 10 votes. Having: %s"%(user['votes']))
 		return
@@ -131,6 +131,10 @@ def rateVocable(userid,vote):
 				if 'creator' in u:
 					strikeUser(u)
 			del vocab
+	if 'votes' in user:
+		users[userid]['votes'] += 1
+	else:
+		users[userid]['votes'] = 1
 	sendMessage(userid,"thanks for the rating!")
 
 
@@ -150,8 +154,10 @@ def banUser(boss,victim,banBool):
 		if not victim in users: users[victim] = {}
 		if banBool:
 			users[victim]['banned'] = banBool
+			sendMessage(victim,"You have been restricted for some reason. Write /supp help for help")
 		else:
 			del users[victim]['banned']
+			sendMessage(victim,"Your account is normal again")
 	else:
 		print("non mod tried to ban:%s"%(boss))
 def modUser(boss,victim,modBool):
@@ -232,7 +238,8 @@ if ('result' in j):
 				o = e['offset']
 				l = e['length']
 				command = update['message']['text'][o:(o+l)]
-				params = update['message']['text'][(o+l):].split()
+				paramText = update['message']['text'][(o+l):]
+				params = paramText.split()
 				if '/vocable'==command:
 					if 0==len(params): printVocable(userid)
 					else: addVocable(params,userid)
@@ -266,6 +273,8 @@ if ('result' in j):
 					setCronInterval(userid,params and params[0] or 30)
 				elif '/msg'==command:
 					if 2==len(params): adminMessage(userid,params[0],params[1])
+				elif '/supp'==command:
+					sendMessage(admin,"%s needs help: %s"%(userid,paramText))
 				else:
 					sendMessage(userid,"unknown command :(")
 				print(userid,command,params)
