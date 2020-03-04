@@ -1,1 +1,1 @@
-while true; do python3 main.py; sleep 10; done
+while true; do python3 main.py; sleep 5; done

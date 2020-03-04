@@ -267,9 +267,19 @@ if ('result' in j):
 				print(userid,command,params)
 			else:
 				print(message)
-			offset = update['update_id']+1
+		elif 'inline_query' in update:
+			print(update['inline_query'])
+			iq_id = update['inline_query']['id']
+			voc = getRandomVoc()
+			print(iq_id,voc)
+			if voc:
+				vocStr = "%s : %s"%(voc,next(iter(dict[voc])))
+				print(vocStr)
+				res = {'type':'article','id':str(int(iq_id)%1000000),'title':voc,'input_message_content':{'message_text':vocStr}}
+				print(requests.post("%s%s/answerInlineQuery?inline_query_id=%s&results=%s"%(preURL,token,iq_id,json.dumps([res]))).json())
 		else:
 			print(update)
+		offset = update['update_id']+1
 
 for u in users:
 	if 'interval' in users[u]:
