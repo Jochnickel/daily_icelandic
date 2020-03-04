@@ -240,7 +240,9 @@ if ('result' in j):
 				command = update['message']['text'][o:(o+l)]
 				paramText = update['message']['text'][(o+l):]
 				params = paramText.split()
-				if '/vocable'==command:
+				if '/start'==command:
+					log("new user: %s"%(userid))
+				elif '/vocable'==command:
 					if 0==len(params): printVocable(userid)
 					else: addVocable(params,userid)
 				elif '/vote_good'==command:
