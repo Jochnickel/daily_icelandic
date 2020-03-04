@@ -113,7 +113,7 @@ def rateVocable(userid,vote):
 		sendMessage(userid,"You can't vote anymore :(")
 		return
 	vocab = dict[user['last1']][user['last2']]
-	if userid in vocab:
+	if str(userid) in vocab:
 		sendMessage(userid,"already voted")
 		return
 	vocab[userid] = vote
