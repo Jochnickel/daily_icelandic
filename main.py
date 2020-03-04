@@ -10,7 +10,8 @@ tokenFile = "token.txt"
 dictFile = "dictionary.txt"
 userFile = "userdata.txt"
 logFile = "log.txt"
-readBuff = 1000000
+welcomeMessage = "Welcome! start with /interval, stop with /stop, unregister with /unsubscribe"
+admin = '452549370'
 
 def read(path, len):
 	try: fd = open(path,"r")
@@ -182,12 +183,21 @@ def newUser(userid):
 	userid = str(userid)
 	if userid in users: return
 	users['userid'] = {}
-	sendMessage(userid,"Welcome! start with /interval, stop with /interval -1")
+	sendMessage(userid,welcomeMessage)
+def delUser(userid):
+	userid = str(userid)
+	if userid in users:
+		if 'banned' in userid[users]:
+			userid[users] = {'banned' = True}
+		else:
+			del userid[users]
 
 token = read(tokenFile,46)
 offset = read(offsetFile,10) or 0
-dict = readjson(dictFile) or {}
-users = readjson(userFile) or {'452549370' : {'administrator': 'True'}}
+dict = readjson(dictFile)
+users = readjson(userFile)
+if not dict: sendMessage(admin,"dict kaputt")
+if not users: sendMessage(admin,"users kaputt")
 
 j = requests.get("%s%s/getUpdates?offset=%s"%(preURL,token,offset)).json()
 if ('result' in j):
@@ -214,6 +224,10 @@ if ('result' in j):
 					rateVocable(userid, 'bad')
 				elif '/interval'==command:
 					setInterval(userid, params and params[0] or 1)
+				elif '/stop'==command:
+					setInterval(userid, -1)
+				elif '/unsubscribe'==command:
+					delUser(userid)
 				elif '/size'==command:
 					sendMessage(userid,"We have collected %s words"%(len(dict)))
 				elif '/ban'==command:
@@ -246,5 +260,3 @@ writejson(dictFile,dict)
 writejson(userFile,users)
 
 write(offsetFile,offset)
-
-print("")
