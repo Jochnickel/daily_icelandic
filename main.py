@@ -188,9 +188,15 @@ def delUser(userid):
 	userid = str(userid)
 	if userid in users:
 		if 'banned' in userid[users]:
-			userid[users] = {'banned' = True}
+			userid[users] = {'banned' : True}
 		else:
 			del userid[users]
+def setCronInterval(userid,int):
+	user = useridStr(userid)
+	if not user: return
+	if not 'administrator' in user: return
+	write('background.sh','while true; do python3 main.py; sleep %s; done'%(int))
+	sendMessage(userid,"Cron interval set to %s"%(int))
 
 token = read(tokenFile,46)
 offset = read(offsetFile,10) or 0
@@ -244,6 +250,8 @@ if ('result' in j):
 						modUser(userid,u,False)
 				elif '/catvideo'==command:
 					sendMessage(userid,"feature coming soon ;)")
+				elif '/cron'==command:
+					setCronInterval(userid,params and params[0] or 30)
 				else:
 					sendMessage(userid,"unknown command :(")
 				print(userid,command,params)
