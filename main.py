@@ -277,8 +277,8 @@ if ('result' in j):
 					if 2==len(params): adminMessage(userid,params[0],params[1])
 				elif '/supp'==command:
 					sendMessage(admin,"%s needs help: %s"%(userid,paramText))
-				else:
-					sendMessage(userid,"unknown command :(")
+#				else:
+#					sendMessage(userid,"unknown command :(")
 				print(userid,command,params)
 			else:
 				print(message)
