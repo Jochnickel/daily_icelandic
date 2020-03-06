@@ -131,6 +131,7 @@ def rateVocable(userid,vote):
 				if 'creator' in u:
 					strikeUser(u)
 			del vocab
+	userid = str(userid)
 	if 'votes' in user:
 		users[userid]['votes'] += 1
 	else:
@@ -274,7 +275,7 @@ if ('result' in j):
 				elif '/cron'==command:
 					setCronInterval(userid,params and params[0] or 30)
 				elif '/msg'==command:
-					if 2==len(params): adminMessage(userid,params[0],params[1])
+					if 2<=len(params): adminMessage(userid,params[0],paramText.split(' ', 2)[2])
 				elif '/supp'==command:
 					sendMessage(admin,"%s needs help: %s"%(userid,paramText))
 #				else:
